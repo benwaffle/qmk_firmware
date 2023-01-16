@@ -155,12 +155,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
             // Left shift has just been pressed. Kill all left alphas.
             case KC_LSFT:
-                layer_state |= 1<<_LQW;
+                layer_on(_LQW);
                 break;
 
             // Right shift has just been pressed. Kill all right alphas.
             case KC_RSFT:
-                layer_state |= 1<<_RQW;
+                layer_on(_RQW);
                 break;
 
             // Punitive layers can't be cancelled by a no-op key. This prevents
@@ -175,7 +175,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             // require using both shift keys if we didn't remove the blockade
             // on the "wrong" side of the board.
             default:
-                layer_state &=  (~1<<_RQW) & (~1<<_LQW);
+                layer_off(_LQW);
+                layer_off(_RQW);
+                break;
         }
     } else {
         switch (keycode) {
@@ -186,7 +188,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             // shift key, but changed their mind and decided to not shift
             // anything at all
             default:
-                layer_state &=  (~1<<_RQW) & (~1<<_LQW);
+                layer_off(_LQW);
+                layer_off(_RQW);
+                break;
         }
     }
     return true;
