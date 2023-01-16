@@ -5,6 +5,8 @@ enum layers {
     BASE,  // default layer
     SYMB,  // symbols
     MDIA,  // media keys
+    _LQW,
+    _RQW,
 };
 
 enum custom_keycodes {
@@ -114,6 +116,33 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                         KC_TRNS,     KC_TRNS,
                                       KC_TRNS, KC_TRNS, KC_TRNS,     KC_TRNS, KC_TRNS, KC_WBAK
 ),
+
+[_LQW] = LAYOUT_ergodox_pretty(
+  _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , _______,     _______, _______, _______, _______, _______, _______, _______,
+  _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , _______,     _______, _______, _______, _______, _______, _______, _______,
+  _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,                       _______, _______, _______, _______, _______, _______,
+  _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , _______,     _______, _______, _______, _______, _______, _______, _______,
+  _______, _______, _______, _______, _______,                                         _______, _______, _______, _______, _______,
+
+
+                                               _______, _______,     _______, _______,
+                                                        _______,     _______,
+                                      _______, _______, _______,     _______, _______, _______
+),
+
+[_RQW] = LAYOUT_ergodox_pretty(
+  _______, _______, _______, _______, _______, _______, _______,     _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , _______,
+  _______, _______, _______, _______, _______, _______, _______,     _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , _______,
+  _______, _______, _______, _______, _______, _______,                       KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , _______,
+  _______, _______, _______, _______, _______, _______, _______,     _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , _______,
+  _______, _______, _______, _______, _______,                                         _______, _______, _______, _______, _______,
+
+
+                                               _______, _______,     _______, _______,
+                                                        _______,     _______,
+                                      _______, _______, _______,     _______, _______, _______
+),
+
 };
 // clang-format on
 
@@ -123,6 +152,41 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             case VRSN:
                 SEND_STRING(QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
                 return false;
+
+            // Left shift has just been pressed. Kill all left alphas.
+            case KC_LSFT:
+                layer_state |= 1<<_LQW;
+                break;
+
+            // Right shift has just been pressed. Kill all right alphas.
+            case KC_RSFT:
+                layer_state |= 1<<_RQW;
+                break;
+
+            // Punitive layers can't be cancelled by a no-op key. This prevents
+            // user from hitting key again to get the letter.
+            case KC_NO:
+                break;
+
+            // Undo any punitive layers once any other key has been pressed.
+            // This allows user to enter a sequence of shifted keys without
+            // having to alternate between left and right shift. For example,
+            // when typing "UPS". Too short to warrant CAPS LOCK use, but would
+            // require using both shift keys if we didn't remove the blockade
+            // on the "wrong" side of the board.
+            default:
+                layer_state &=  (~1<<_RQW) & (~1<<_LQW);
+        }
+    } else {
+        switch (keycode) {
+            case KC_NO:
+                break;
+
+            // Make sure punitive layers are released if user pressed a
+            // shift key, but changed their mind and decided to not shift
+            // anything at all
+            default:
+                layer_state &=  (~1<<_RQW) & (~1<<_LQW);
         }
     }
     return true;
