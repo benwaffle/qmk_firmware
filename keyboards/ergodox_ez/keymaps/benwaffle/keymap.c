@@ -1,6 +1,8 @@
 #include QMK_KEYBOARD_H
 #include "version.h"
 
+#define FORCE_PROPER_SHIFT_USAGE 0
+
 enum layers {
     BASE,  // default layer
     SYMB,  // symbols
@@ -153,6 +155,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 SEND_STRING(QMK_KEYBOARD "/" QMK_KEYMAP " @ " QMK_VERSION);
                 return false;
 
+#if FORCE_PROPER_SHIFT_USAGE
+
             // Left shift has just been pressed. Kill all left alphas.
             case KC_LSFT:
                 layer_on(_LQW);
@@ -178,6 +182,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_off(_LQW);
                 layer_off(_RQW);
                 break;
+
         }
     } else {
         switch (keycode) {
@@ -191,6 +196,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_off(_LQW);
                 layer_off(_RQW);
                 break;
+#endif
         }
     }
     return true;
